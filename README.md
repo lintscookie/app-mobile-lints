@@ -1,21 +1,8 @@
-# Middleware Webhook
-Aplikasi converter pipeline event gitlab ke notifikasi commit github.
+# Mobile Banking Project
 
-## Requirements
-- Golang
+Project ini merupakan raw project dari [mobile-banking](https://gitlab.com/fitraelbi/mobile-banking-v3.git).
 
-## Installation
-For apps
-```bash
-go mod download
-go run main.go
-```
-
-
-## ENV APPS
-Tambahkan pada variable gitlab ci
-```bash
-GITHUB_OWNER    => Username Github
-GITHUB_REPO     => Repo name Github
-GITHUB_TOKEN    => Personal Access Token Github
-```
+## Cara Menggunakan
+1. Clone repository ini:
+   ```bash
+   git clone https://gitlab.com/fitraelbi/mobile-banking-raw.git
