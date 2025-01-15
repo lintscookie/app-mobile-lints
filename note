@@ -1,0 +1,43 @@
+# GitLab
+1. App-Mobile -->  Settings -->  CI/CD --> Variables
+    DOCKERHUB_PASSWORD
+    DOCKERHUB_USERNAME
+    DOCKER_IMAGE
+    GCLOUD_SERVICE_KEY --> SA GCP
+    GCP_PROJECT_ID -->  App-Mobile -->  Settings --> general --> Project ID
+    SERVICE_NAME --> name apps of cloudrun
+    SERVICE_NAME_DEV --> name apps of cloudrun
+    ####
+    Status Pipeline --> IDSyslog --> App-Mobile --> Jobs
+    Webhook --> App-Mobile -->  Settings -->  webhook
+    ####
+    Project access tokens --> api, read_repository, write_repository
+
+# GitHub
+1. Generate Token --> profile --> Settings --> Developer Settings --> Personal access tokens (classic)
+2. Actions secrets and variables --> App-Mobile --> setting
+    GITLAB_PAT
+    GITLAB_PROJECT_ID
+    GITLAB_URL
+    GITLAB_USERNAME
+
+# GCP
+1.  Install gcloud
+2. Create SA --> role editor
+3. open public cloud run --> alluser --> roles/run.invoker 
+
+# Terraform
+1. install terraform
+project_id     = "cool-furnace-438004-h0"
+env_variables  = {
+  GITHUB_OWNER    = "kayyazka"
+  GITHUB_REPO     = "https://github.com/kayyazka/app-mobile.git"
+  GITHUB_TOKEN    = "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"
+}
+
+change service
+
+variable "service_name" {
+  default = "middleware-webhook"
+}
+
