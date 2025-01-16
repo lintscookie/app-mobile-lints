@@ -16,8 +16,8 @@ spec:
     spec:
       containers:
         - name: nginx
-          # image: kayyazka/webtest:96793030 # versi 1
-          image: kayyazka/webtest:2896a598 # versi 2 
+          image: kayyazka/webtest:96793030 # versi 1
+          # image: kayyazka/webtest:2896a598 # versi 2 
           ports:
             - containerPort: 8080
 ---
