@@ -1,5 +1,5 @@
-variables:
-  SAST_IMAGE_SUFFIX: '-fips'
+# variables:
+#   SAST_IMAGE_SUFFIX: '-fips'
 
 include:
   - template: Jobs/SAST.gitlab-ci.yml
@@ -10,6 +10,7 @@ stages:
   - security
   - test
   - deploy
+  - notify
 
 build:
   image: docker:20.10.16
@@ -34,9 +35,9 @@ build:
     - docker push $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
     - docker push $DOCKER_IMAGE:cache
   only:
-    refs:
-      - development
-      - main
+    - main
+    - development
+    - merge_requests
 
 
 sast:
@@ -47,26 +48,6 @@ sast:
     paths:
       - gl-sast-report.json     
     expire_in: 1 week    
-
-# owasp_dependency_check:
-#   image:
-#     name: registry.gitlab.com/gitlab-ci-utils/docker-dependency-check:latest
-#     entrypoint: [""]
-#   needs:
-#     - build
-#   script:
-#     - >
-#       /usr/share/dependency-check/bin/dependency-check.sh --scan "./" --format ALL
-#       --project "$CI_PROJECT_NAME" --failOnCVSS 0
-#   allow_failure: true
-#   only:
-#     - main
-#     - development
-#     - staging
-#   artifacts:
-#     when: always
-#     paths:
-#       - "./dependency-check-report.html"
 
 
 unit-tests:
@@ -122,15 +103,11 @@ deploy-dev:
     - gcloud config set project $GCP_PROJECT_ID
   image: google/cloud-sdk:stable
   script:
-    - gcloud run deploy $SERVICE_NAME_DEV
-        --image $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
-        --region asia-southeast2 
+    - gcloud run deploy $SERVICE_NAME_DEV --image $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA --region asia-southeast2 --allow-unauthenticated
+  after_script:
+    - curl -s -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d text="Deploy development"
   only:
-    variables:
-      - $pr_num == ""
-    refs:
-      - development
-
+    - development
 
 
 deploy-prod:
@@ -145,11 +122,23 @@ deploy-prod:
     - gcloud config set project $GCP_PROJECT_ID
   image: google/cloud-sdk:stable
   script:
-    - gcloud run deploy $SERVICE_NAME
-        --image $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA
-        --region asia-southeast2 
+    - gcloud run deploy $SERVICE_NAME --image $DOCKER_IMAGE:$CI_COMMIT_SHORT_SHA --region asia-southeast2 --allow-unauthenticated
+  after_script:
+    - apt-get update && apt-get install -y curl
+    - curl -s -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d text="Deploy Production Started by:USER:${CI_COMMIT_AUTHOR}, COMMIT MESSAGE:${CI_COMMIT_MESSAGE}"
   only:
-    variables:
-      - $pr_num == ""
-    refs:
-      - main
+    - main
+
+notify_telegram:
+  stage: notify
+  image: curlimages/curl:latest
+  script:
+    - curl -s -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d text="Deploy berhasil! Pipeline:${CI_PIPELINE_URL}"
+  when: on_success
+
+notify_telegram_failure:
+  stage: notify
+  image: curlimages/curl:latest
+  script:
+    - curl -s -X POST https://api.telegram.org/bot${BOT_TOKEN}/sendMessage -d chat_id=${CHAT_ID} -d text="Deploy failed! Pipeline:${CI_PIPELINE_URL}"
+  when: on_failure
